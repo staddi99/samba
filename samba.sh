@@ -18,6 +18,7 @@
 
 set -o nounset                              # Treat unset variables as an error
 
+
 ### charmap: setup character mapping for file/directory names
 # Arguments:
 #   chars) from:to character mappings separated by ','
@@ -132,8 +133,15 @@ user() { local name="$1" passwd="$2" id="${3:-""}" group="${4:-""}"
     [[ "$group" ]] && { grep -q "^$group:" /etc/group || addgroup "$group"; }
     grep -q "^$name:" /etc/passwd ||
         adduser -D -H ${group:+-G $group} ${id:+-u $id} "$name"
-    echo -e "$passwd\n$passwd" | smbpasswd -s -a "$name"
+    if [ -z "$passwd" ]; then
+        smbpasswd -e "$name"
+    else
+    	echo -e "$passwd\n$passwd" | smbpasswd -s -a "$name"
+    fi
 }
+
+
+
 
 ### workgroup: set the workgroup
 # Arguments:
