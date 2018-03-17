@@ -1,9 +1,9 @@
 FROM alpine
-MAINTAINER David Personette <dperson@gmail.com>
+MAINTAINER Maximilian Stadtmueller <info@staddi99.com>
 
 # Install samba
 RUN apk --no-cache --no-progress upgrade && \
-    apk --no-cache --no-progress add bash samba shadow && \
+    apk --no-cache --no-progress add bash samba shadow quota quotatool && \
     adduser -D -G users -H -S -g 'Samba User' -h /tmp smbuser && \
     file="/etc/samba/smb.conf" && \
     sed -i 's|^;* *\(log file = \).*|   \1/dev/stdout|' $file && \
@@ -22,8 +22,6 @@ RUN apk --no-cache --no-progress upgrade && \
     echo '   force create mode = 0664' >>$file && \
     echo '   directory mask = 0775' >>$file && \
     echo '   force directory mode = 0775' >>$file && \
-    echo '   force user = smbuser' >>$file && \
-    echo '   force group = users' >>$file && \
     echo '   follow symlinks = yes' >>$file && \
     echo '   load printers = no' >>$file && \
     echo '   printing = bsd' >>$file && \
