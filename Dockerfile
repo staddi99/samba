@@ -1,9 +1,9 @@
-FROM alpine
+FROM debian
 MAINTAINER Maximilian Stadtmueller <info@staddi99.com>
 
 # Install samba
-RUN apk --no-cache --no-progress upgrade && \
-    apk --no-cache --no-progress add bash samba shadow quota quota-tools && \
+RUN apt --no-cache --no-progress upgrade -y && \
+    apt --no-cache --no-progress install -y bash samba shadow quota quotatool && \
     adduser -D -G users -H -S -g 'Samba User' -h /tmp smbuser && \
     file="/etc/samba/smb.conf" && \
     sed -i 's|^;* *\(log file = \).*|   \1/dev/stdout|' $file && \
