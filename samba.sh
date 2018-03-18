@@ -113,7 +113,7 @@ share() { local share="$1" path="$2" limit="${3:-0}" browsable="${4:-yes}" ro="$
         echo "   comment = $(tr ',' ' ' <<< $comment)" >>$file
     echo "" >>$file
     [[ -d $path ]] || mkdir -p $path
-    local id = tail -1 /etc/projid | awk -F'[ :]' '{print $2+1}'
+    local id='tail -1 /etc/projid | awk -F\'[ :]\' \'{print $2+1}\''
     echo "$id:$path" >> /etc/projects
     echo "share$id:$id" >> /etc/projid
     xfs_quota -x -c "project -s share$id"
