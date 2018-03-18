@@ -81,6 +81,7 @@ recycle() { local file=/etc/samba/smb.conf
 # Arguments:
 #   share) share name
 #   path) path to share
+#   limit) limit of share in GB
 #   browsable) 'yes' or 'no'
 #   readonly) 'yes' or 'no'
 #   guest) 'yes' or 'no'
@@ -89,9 +90,9 @@ recycle() { local file=/etc/samba/smb.conf
 #   writelist) list of users that can write to a RO share
 #   comment) description of share
 # Return: result
-share() { local share="$1" path="$2" browsable="${3:-yes}" ro="${4:-yes}" \
-                guest="${5:-yes}" users="${6:-""}" admins="${7:-""}" \
-                writelist="${8:-""}" comment="${9:-""}" file=/etc/samba/smb.conf
+share() { local share="$1" path="$2" limit="${3:-0}" browsable="${4:-yes}" ro="${5:-yes}" \
+                guest="${6:-yes}" users="${7:-""}" admins="${8:-""}" \
+                writelist="${9:-""}" comment="${10:-""}" file=/etc/samba/smb.conf
     sed -i "/\\[$share\\]/,/^\$/d" $file
     echo "[$share]" >>$file
     echo "   path = $path" >>$file
@@ -112,6 +113,11 @@ share() { local share="$1" path="$2" browsable="${3:-yes}" ro="${4:-yes}" \
         echo "   comment = $(tr ',' ' ' <<< $comment)" >>$file
     echo "" >>$file
     [[ -d $path ]] || mkdir -p $path
+    local id = tail -1 /etc/projid | awk -F'[ :]' '{print $2+1}'
+    echo "$id:$path" >> /etc/projects
+    echo "share$id:$id" >> /etc/projid
+    xfs_quota -x -c "project -s share$id"
+    xfs_quota -x -c "limit -p bhard=$limit\g share$id"
 }
 
 ### smb: disable SMB2 minimum
@@ -178,12 +184,13 @@ Options (fields in '[]' are optional, '<>' are required):
     -p          Set ownership and permissions on the shares
     -r          Disable recycle bin for shares
     -S          Disable SMB2 minimum version
-    -s \"<name;/path>[;browse;readonly;guest;users;admins;writelist;comment]\"
+    -s \"<name;/path>[;limit;browse;readonly;guest;users;admins;writelist;comment]\"
                 Configure a share
                 required arg: \"<name>;</path>\"
                 <name> is how it's called for clients
                 <path> path to share
                 NOTE: for the default value, just leave blank
+                [limit] default:'0' or size in GB (0 = unlimited)
                 [browsable] default:'yes' or 'no'
                 [readonly] default:'yes' or 'no'
                 [guest] allowed default:'yes' or 'no'
